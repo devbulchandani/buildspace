@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: 'https://buildspace-ai-backend-985437920499.asia-south1.run.app/api',
     headers: {
         'Content-Type': 'application/json',
     },

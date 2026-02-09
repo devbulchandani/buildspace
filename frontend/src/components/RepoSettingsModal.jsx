@@ -32,10 +32,10 @@ const RepoSettingsModal = ({ isOpen, onClose }) => {
             return;
         }
 
-        if (githubUrl && !validateGithubUrl(githubUrl)) {
-            setError('Please enter a valid GitHub repository URL (e.g., https://github.com/username/repo)');
-            return;
-        }
+        // if (githubUrl && !validateGithubUrl(githubUrl)) {
+        //     setError('Please enter a valid GitHub repository URL (e.g., https://github.com/username/repo)');
+        //     return;
+        // }
 
         setLoading(true);
         setError('');

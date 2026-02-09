@@ -19,7 +19,7 @@ const McpIntegration = () => {
             config: {
                 "repo-analyzer": {
                     "command": "npx",
-                    "args": ["-y", "supergateway", "--streamableHttp", "http://localhost:3000/mcp"]
+                    "args": ["-y", "supergateway", "--streamableHttp", "https://buildspace-repo-analyzer-985437920499.asia-south1.run.app//mcp"]
                 }
             },
             tools: ["analyze_project", "read_file", "read_files"],
@@ -31,7 +31,7 @@ const McpIntegration = () => {
             config: {
                 "buildspace": {
                     "command": "npx",
-                    "args": ["-y", "supergateway", "--streamableHttp", `http://localhost:3001/mcp/${currentPlan?.id || '{planId}'}`]
+                    "args": ["-y", "supergateway", "--streamableHttp", `https://buildspace-ai-mcp-2-985437920499.asia-south1.run.app/mcp/${currentPlan?.id || '{planId}'}`]
                 }
             },
             tools: ["get_learning_plan", "get_current_milestone", "get_socratic_guidance", "get_milestone_details", "get_progress"],
@@ -113,10 +113,6 @@ const McpIntegration = () => {
                     Prerequisites
                 </h3>
                 <ul className="space-y-2 text-sm text-yellow-800">
-                    <li className="flex items-start gap-2">
-                        <span className="text-yellow-600 mt-0.5">•</span>
-                        <span>Make sure your backend server is running on <code className="bg-yellow-100 px-1.5 py-0.5 rounded">localhost:3000</code> and <code className="bg-yellow-100 px-1.5 py-0.5 rounded">localhost:3001</code></span>
-                    </li>
                     <li className="flex items-start gap-2">
                         <span className="text-yellow-600 mt-0.5">•</span>
                         <span>Node.js and npx must be installed on your system</span>

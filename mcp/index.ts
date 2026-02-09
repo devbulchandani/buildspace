@@ -10,7 +10,8 @@ import fs from "fs-extra";
 import path from "path";
 import { z } from "zod";
 
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
+
 
 
 const server = new McpServer(
@@ -40,11 +41,10 @@ async function cloneRepo(repoUrl: string): Promise<string> {
     }
 
     const git: SimpleGit = simpleGit();
-    const sshUrl = repoUrl
-        .replace("https://github.com/", "git@github.com:")
-        .replace(/\/$/, "");
+    const httpsUrl = repoUrl.replace(/\/$/, "");
+    await git.clone(httpsUrl, repoPath);
+    console.log("Cloning repo via HTTPS:", httpsUrl);
 
-    await git.clone(sshUrl, repoPath);
     return repoPath;
 }
 
@@ -287,9 +287,13 @@ app.delete("/mcp", async (req, res) => {
     delete transports[sessionId];
 });
 
+app.get("/health", (req, res) => {
+    res.send("OK");
+});
 
-const expressServer = app.listen(PORT, () => {
-    console.log(`✅ Repo Analyzer MCP running on http://localhost:${PORT}/mcp`);
+
+const expressServer = app.listen(port, () => {
+    console.log(`✅ Repo Analyzer MCP running on http://localhost:${port}/mcp`);
 });
 
 process.on("SIGINT", async () => {

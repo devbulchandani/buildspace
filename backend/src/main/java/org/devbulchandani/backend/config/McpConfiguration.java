@@ -14,7 +14,7 @@ public class McpConfiguration {
     @Bean
     public McpTransport repoMcpTransport() {
         return StreamableHttpMcpTransport.builder()
-                .url("http://localhost:3000/mcp")
+                .url("https://buildspace-repo-analyzer-985437920499.asia-south1.run.app/mcp")
                 .logRequests(true)
                 .logResponses(true)
                 .build();

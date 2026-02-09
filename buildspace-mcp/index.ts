@@ -10,8 +10,8 @@ import axios from "axios";
 import { z } from "zod";
 import { stat } from "node:fs";
 
-const PORT = process.env.PORT || 3001;
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
+const port = process.env.PORT || 8080;
+const BACKEND_URL = process.env.BACKEND_URL || "https://buildspace-ai-backend-985437920499.asia-south1.run.app";
 
 interface Milestone {
     sequenceNumber: number;
@@ -471,12 +471,12 @@ app.get("/health", (req, res) => {
     });
 });
 
-const expressServer = app.listen(PORT, () => {
+const expressServer = app.listen(port, () => {
     console.log(
-        `✅ Buildspace MCP running on http://localhost:${PORT}/mcp`
+        `✅ Buildspace MCP running on http://localhost:${port}/mcp`
     );
     console.log(`📚 Backend URL: ${BACKEND_URL}`);
-    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    console.log(`🏥 Health check: http://localhost:${port}/health`);
 });
 
 process.on("SIGINT", async () => {
