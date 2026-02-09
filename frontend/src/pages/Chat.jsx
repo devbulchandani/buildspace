@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Code2, Bot, User } from 'lucide-react';
+import { Send, Paperclip, Code2, Bot, User, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { cn } from '../lib/utils';
 import useAppStore from '../store/useAppStore';
 import { chatApi } from '../api/chatApi';
 import { getErrorMessage } from '../api/errorHandler';
@@ -30,14 +29,26 @@ const ChatMessage = ({ role, content }) => {
 };
 
 const Chat = () => {
-    const { currentPlan, repoUrl } = useAppStore();
-    const [messages, setMessages] = useState([
-        { role: 'assistant', content: "Hi! I'm your AI mentor. Ask me anything about your learning journey!" }
-    ]);
+    const { currentPlan, repoUrl, milestones } = useAppStore();
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [includeContext, setIncludeContext] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+
+    // Initialize with welcome message
+    useEffect(() => {
+        if (currentPlan) {
+            setMessages([{
+                role: 'assistant',
+                content: `Hi! I'm your AI mentor for **${currentPlan.title}**. I can help you understand concepts, debug issues, and guide you through your learning journey. What would you like to know?`
+            }]);
+        } else {
+            setMessages([{
+                role: 'assistant',
+                content: "Hi! I'm your AI mentor. Please select or create a learning plan to get started with personalized guidance."
+            }]);
+        }
+    }, [currentPlan]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,6 +62,14 @@ const Chat = () => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
+        if (!currentPlan) {
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: "Please select or create a learning plan first. I need to know what you're working on to provide relevant guidance."
+            }]);
+            return;
+        }
+
         const userMessage = { role: 'user', content: input };
         setMessages(prev => [...prev, userMessage]);
         setInput('');
@@ -58,8 +77,9 @@ const Chat = () => {
 
         try {
             const response = await chatApi.sendMessage(
-                currentPlan?.id || 1,
+                currentPlan.id,
                 input,
+                repoUrl || ''
             );
 
             setMessages(prev => [...prev, {
@@ -77,6 +97,9 @@ const Chat = () => {
         }
     };
 
+    // Get current milestone (first incomplete one)
+    const currentMilestone = milestones?.find(m => !m.completed) || milestones?.[0];
+
     return (
         <div className="flex h-[calc(100vh-8rem)] gap-6">
             {/* Left Panel - Context */}
@@ -84,35 +107,81 @@ const Chat = () => {
                 <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex-shrink-0">
                     <h3 className="font-bold text-slate-700 mb-2">Current Context</h3>
 
-                    <div className="mb-4">
-                        <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Milestone</div>
-                        <div className="text-sm font-medium text-slate-800">Create Repository Layer</div>
-                    </div>
+                    {currentPlan ? (
+                        <>
+                            <div className="mb-4">
+                                <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Learning Plan</div>
+                                <div className="text-sm font-medium text-slate-800">{currentPlan.title}</div>
+                                <div className="text-xs text-slate-500 mt-1">
+                                    {currentPlan.tech} • {currentPlan.skillLevel}
+                                </div>
+                            </div>
 
-                    <div className="mb-4">
-                        <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Repo</div>
-                        <a href="#" className="text-sm text-sky-600 hover:underline break-all">
-                            {currentPlan?.subtitle || 'github.com/username/todo-app'}
-                        </a>
-                    </div>
+                            {currentMilestone && (
+                                <div className="mb-4">
+                                    <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Current Milestone</div>
+                                    <div className="text-sm font-medium text-slate-800">{currentMilestone.title}</div>
+                                </div>
+                            )}
+
+                            {repoUrl && (
+                                <div className="mb-4">
+                                    <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Repository</div>
+                                    <a 
+                                        href={repoUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-sm text-sky-600 hover:underline break-all"
+                                    >
+                                        {repoUrl.replace('https://', '').replace('http://', '')}
+                                    </a>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-sm text-slate-500 py-4">
+                            No active learning plan selected
+                        </div>
+                    )}
                 </div>
 
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex-1 overflow-y-auto">
                     <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
                         <Code2 className="w-4 h-4" />
-                        Code Context
+                        AI Capabilities
                     </h3>
-                    <p className="text-xs text-indigo-700 mb-2">
-                        AI observes your code changes.
-                    </p>
-                    <div className="bg-white rounded border border-indigo-100 p-2 text-xs font-mono text-slate-600 overflow-x-auto">
-                        {`// TaskRepository.java
-public interface TaskRepository 
-  extends JpaRepository<Task, Long> {
-  
-  List<Task> findByCompleted(boolean c);
-}`}
+                    <div className="space-y-3 text-xs text-indigo-800">
+                        <div className="flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                            <p>Analyzes your GitHub repository code</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                            <p>Provides Socratic guidance (asks questions instead of giving answers)</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                            <p>Understands your learning context and milestones</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                            <p>Helps debug and explain concepts</p>
+                        </div>
                     </div>
+
+                    {!repoUrl && currentPlan && (
+                        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex gap-2">
+                                <AlertCircle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-xs font-medium text-yellow-800 mb-1">No Repository Set</p>
+                                    <p className="text-xs text-yellow-700">
+                                        Add your GitHub URL in Repository Settings for code analysis.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -128,26 +197,20 @@ public interface TaskRepository
 
                 {/* Input Area */}
                 <div className="p-4 bg-white border-t border-slate-100">
-                    <form onSubmit={handleSend} className="relative">
-                        <div className="flex items-center gap-2 mb-2 px-2">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <div className={`w-9 h-5 rounded-full relative transition-colors ${includeContext ? 'bg-sky-500' : 'bg-slate-200'}`}
-                                    onClick={() => setIncludeContext(!includeContext)}>
-                                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm transition-all ${includeContext ? 'left-5' : 'left-1'}`} />
-                                </div>
-                                <span className="text-xs font-medium text-slate-500 group-hover:text-sky-600 transition-colors">
-                                    Include codebase context
-                                </span>
-                            </label>
+                    {!currentPlan && (
+                        <div className="mb-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex gap-2">
+                            <AlertCircle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-yellow-700">
+                                Please select or create a learning plan to start chatting with your AI mentor.
+                            </p>
                         </div>
-
+                    )}
+                    
+                    <form onSubmit={handleSend} className="relative">
                         <div className="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 focus-within:ring-2 focus-within:ring-sky-100 focus-within:border-sky-300 transition-all">
-                            <button type="button" className="p-2 text-slate-400 hover:text-sky-500 transition-colors">
-                                <Paperclip className="w-5 h-5" />
-                            </button>
                             <textarea
-                                className="flex-1 bg-transparent border-none focus:ring-0 resize-none max-h-32 py-2 text-slate-700 placeholder:text-slate-400"
-                                placeholder="Ask anything about your code..."
+                                className="flex-1 bg-transparent border-none focus:ring-0 resize-none max-h-32 py-2 px-2 text-slate-700 placeholder:text-slate-400 outline-none"
+                                placeholder={currentPlan ? "Ask anything about your code..." : "Select a plan to start chatting..."}
                                 rows={1}
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
@@ -157,10 +220,11 @@ public interface TaskRepository
                                         handleSend(e);
                                     }
                                 }}
+                                disabled={!currentPlan}
                             />
                             <button
                                 type="submit"
-                                disabled={!input.trim() || isLoading}
+                                disabled={!input.trim() || isLoading || !currentPlan}
                                 className="p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                             >
                                 {isLoading ? (
