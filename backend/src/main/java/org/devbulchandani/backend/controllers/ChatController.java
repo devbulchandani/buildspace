@@ -30,7 +30,7 @@ public class ChatController {
     public String chat(@RequestBody ChatRequest req) {
         LearningPlan plan = planRepo.findById(req.learningPlanId())
                 .orElseThrow(() -> new RuntimeException("Learning plan not found"));
-
+        String repoUrl = plan.getGithubUrl();
 
 
         String enrichedPrompt = """
@@ -49,7 +49,7 @@ public class ChatController {
         %s
         """.formatted(
                     req.message(),
-                    req.repoUrl(),
+                    repoUrl,
                     planContext.buildPlanContext(plan)
             );
         return mentorBot.chat(enrichedPrompt);

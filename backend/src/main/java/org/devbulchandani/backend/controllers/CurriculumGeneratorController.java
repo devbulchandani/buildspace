@@ -6,6 +6,8 @@ import org.devbulchandani.backend.services.CurriculumGeneratorService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/plans")
 public class CurriculumGeneratorController {
@@ -24,11 +26,32 @@ public class CurriculumGeneratorController {
     }
 
     @PostMapping
-    public LearningPlan createPlan(@RequestBody PlanRequest request) {
+    public LearningPlan createPlan(
+            @RequestBody PlanRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
         return service.generatePlan(
+                token,
                 request.technology(),
                 request.duration(),
                 request.skillLevel()
         );
     }
+
+    @GetMapping("/my-plans")
+    public List<LearningPlan> getMyPlans(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        return service.findByUserEmail(token);
+    }
+
+    @PutMapping("/{planId}/github")
+    public LearningPlan addGithubUrl(
+            @PathVariable long planId,
+            @RequestParam String githubUrl,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String token = authHeader.replace("Bearer ", "");
+        return service.updateGithubUrl(planId, githubUrl, token);
+    }
+
 }

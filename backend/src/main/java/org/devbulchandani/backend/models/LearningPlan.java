@@ -37,6 +37,8 @@ public class LearningPlan {
     @Column(nullable = false)
     private String skillLevel;
 
+    private String githubUrl;
+
     private String projectPath;
 
     @OneToMany(mappedBy = "learningPlan", cascade = CascadeType.ALL)

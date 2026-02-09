@@ -5,9 +5,14 @@ import dev.langchain4j.model.chat.ChatModel;
 import org.devbulchandani.backend.dtos.CurriculumResponse;
 import org.devbulchandani.backend.models.LearningPlan;
 import org.devbulchandani.backend.models.Milestone;
+import org.devbulchandani.backend.models.User;
 import org.devbulchandani.backend.repositories.LearningPlanRepository;
 import org.devbulchandani.backend.repositories.MilestoneRepository;
+import org.devbulchandani.backend.repositories.UserRepository;
+import org.devbulchandani.backend.utils.JwtUtil;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CurriculumGeneratorService {
@@ -15,17 +20,25 @@ public class CurriculumGeneratorService {
     private final ObjectMapper mapper = new ObjectMapper();
     private final LearningPlanRepository planRepo;
     private final MilestoneRepository milestoneRepo;
+    private final UserRepository userRepo;
+    private final JwtUtil jwtUtil;
 
-    public CurriculumGeneratorService(ChatModel gemini, LearningPlanRepository planRepo, MilestoneRepository milestoneRepo) {
+
+    public CurriculumGeneratorService(ChatModel gemini, LearningPlanRepository planRepo, MilestoneRepository milestoneRepo, UserRepository userrepo, JwtUtil jwtUtil) {
         this.gemini = gemini;
         this.planRepo = planRepo;
         this.milestoneRepo = milestoneRepo;
+        this.userRepo = userrepo;
+        this.jwtUtil = jwtUtil;
     }
 
-    public LearningPlan generatePlan( String tech, int days, String skillLevel) {
-        String prompt = buildPrompt( tech, days, skillLevel);
+    public LearningPlan generatePlan(String token, String tech, int days, String skillLevel) {
+        String prompt = buildPrompt(tech, days, skillLevel);
 
         String aiJson = gemini.chat(prompt);
+        String email = jwtUtil.extractEmail(token);
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         try {
             CurriculumResponse response =
@@ -34,6 +47,7 @@ public class CurriculumGeneratorService {
             LearningPlan plan = LearningPlan.builder()
                     .tech(tech)
                     .durationDays(days)
+                    .user(user)
                     .projectName(response.projectName())
                     .projectDescription(response.projectDescription())
                     .skillLevel(skillLevel)
@@ -53,6 +67,7 @@ public class CurriculumGeneratorService {
 
                 milestoneRepo.save(milestone);
             }
+            System.out.println("Plans: " + plan);
 
             return plan;
 
@@ -61,16 +76,16 @@ public class CurriculumGeneratorService {
         }
     }
 
-    private String buildPrompt( String tech, int days, String level) {
+    private String buildPrompt(String tech, int days, String level) {
         return """
                 You are an expert curriculum designer for software developers.
-
+                
                 Create a project-based learning plan in JSON ONLY.
-
+                
                 Technology: %s
                 Duration (days): %d
                 Skill Level: %s
-
+                
                 Rules:
                 - Choose ONE real project idea.
                 - Create 3 to 5 milestones only.
@@ -78,7 +93,7 @@ public class CurriculumGeneratorService {
                 - Each milestone should teach exactly one core concept.
                 - Do NOT include code.
                 - Return ONLY valid JSON in this exact format:
-
+                
                 {
                   "projectName": "...",
                   "projectDescription": "...",
@@ -95,6 +110,25 @@ public class CurriculumGeneratorService {
                   ]
                 }
                 """.formatted(tech, days, level);
+    }
+
+    public List<LearningPlan> findByUserEmail(String token){
+        String email = jwtUtil.extractEmail(token);
+        return planRepo.findByUserEmail(email);
+    }
+
+    public LearningPlan updateGithubUrl(long learningPlanId, String githubUrl, String token){
+        String email = jwtUtil.extractEmail(token);
+        LearningPlan plan = planRepo.findById(learningPlanId)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+
+        if (!plan.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Unauthorized: This plan does not belong to you");
+        }
+
+        plan.setGithubUrl(githubUrl);
+        planRepo.save(plan);
+        return plan;
     }
 }
 

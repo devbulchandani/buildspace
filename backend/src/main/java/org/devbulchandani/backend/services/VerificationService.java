@@ -23,12 +23,12 @@ public class VerificationService {
         this.planContext = planContext;
     }
 
-    public String verifyMilestone(Long milestoneId, String repoUrl) {
+    public String verifyMilestone(Long milestoneId) {
         Milestone m = milestoneRepo.findById(milestoneId)
                 .orElseThrow();
 
         LearningPlan plan = m.getLearningPlan();
-
+        String repoUrl = plan.getGithubUrl();
 
         String prompt = """
                 You are reviewing the user's progress.

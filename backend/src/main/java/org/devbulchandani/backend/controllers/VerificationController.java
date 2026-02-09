@@ -16,9 +16,8 @@ public class VerificationController {
     }
 
     @PostMapping("/{milestoneId}")
-    public Map<String, Object> verify(@PathVariable Long milestoneId, @RequestBody VerifyRequest req) {
-
-        String aiFeedback = verificationService.verifyMilestone(milestoneId, req.repoUrl());
+    public Map<String, Object> verify(@PathVariable Long milestoneId) {
+        String aiFeedback = verificationService.verifyMilestone(milestoneId);
 
         return Map.of(
                 "completed", aiFeedback.contains("COMPLETED"),
