@@ -130,5 +130,10 @@ public class CurriculumGeneratorService {
         planRepo.save(plan);
         return plan;
     }
+
+    public LearningPlan getPlanById(long planId) {
+        return planRepo.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+    }
 }
 

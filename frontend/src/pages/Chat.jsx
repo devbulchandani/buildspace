@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Code2, Bot, User, AlertCircle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Send, Code2, Bot, User, AlertCircle, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import useAppStore from '../store/useAppStore';
 import { chatApi } from '../api/chatApi';
 import { getErrorMessage } from '../api/errorHandler';
+import PlanSelectorModal from '../components/PlanSelectorModal';
 
 const ChatMessage = ({ role, content }) => {
     const isUser = role === 'user';
@@ -33,6 +34,7 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPlanSelector, setShowPlanSelector] = useState(false);
     const messagesEndRef = useRef(null);
 
     // Initialize with welcome message
@@ -101,49 +103,58 @@ const Chat = () => {
     const currentMilestone = milestones?.find(m => !m.completed) || milestones?.[0];
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] gap-6">
-            {/* Left Panel - Context */}
-            <div className="w-80 hidden lg:flex flex-col gap-4">
-                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex-shrink-0">
-                    <h3 className="font-bold text-slate-700 mb-2">Current Context</h3>
+        <>
+            <div className="flex h-[calc(100vh-8rem)] gap-6">
+                {/* Left Panel - Context */}
+                <div className="w-80 hidden lg:flex flex-col gap-4">
+                    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex-shrink-0">
+                        <h3 className="font-bold text-slate-700 mb-2">Current Context</h3>
 
-                    {currentPlan ? (
-                        <>
-                            <div className="mb-4">
-                                <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Learning Plan</div>
-                                <div className="text-sm font-medium text-slate-800">{currentPlan.title}</div>
-                                <div className="text-xs text-slate-500 mt-1">
-                                    {currentPlan.tech} • {currentPlan.skillLevel}
+                        {currentPlan ? (
+                            <>
+                                <div className="mb-4">
+                                    <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Learning Plan</div>
+                                    <div className="text-sm font-medium text-slate-800">{currentPlan.title}</div>
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        {currentPlan.tech} • {currentPlan.skillLevel}
+                                    </div>
                                 </div>
+
+                                <button
+                                    onClick={() => setShowPlanSelector(true)}
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-medium rounded-lg transition-colors border border-sky-200 mb-4"
+                                >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    Change Plan
+                                </button>
+
+                                {currentMilestone && (
+                                    <div className="mb-4">
+                                        <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Current Milestone</div>
+                                        <div className="text-sm font-medium text-slate-800">{currentMilestone.title}</div>
+                                    </div>
+                                )}
+
+                                {repoUrl && (
+                                    <div className="mb-4">
+                                        <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Repository</div>
+                                        <a 
+                                            href={repoUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-sky-600 hover:underline break-all"
+                                        >
+                                            {repoUrl.replace('https://', '').replace('http://', '')}
+                                        </a>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-sm text-slate-500 py-4">
+                                No active learning plan selected
                             </div>
-
-                            {currentMilestone && (
-                                <div className="mb-4">
-                                    <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Current Milestone</div>
-                                    <div className="text-sm font-medium text-slate-800">{currentMilestone.title}</div>
-                                </div>
-                            )}
-
-                            {repoUrl && (
-                                <div className="mb-4">
-                                    <div className="text-xs text-slate-400 uppercase font-semibold mb-1">Repository</div>
-                                    <a 
-                                        href={repoUrl} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-sm text-sky-600 hover:underline break-all"
-                                    >
-                                        {repoUrl.replace('https://', '').replace('http://', '')}
-                                    </a>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-sm text-slate-500 py-4">
-                            No active learning plan selected
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
 
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex-1 overflow-y-auto">
                     <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
@@ -238,6 +249,11 @@ const Chat = () => {
                 </div>
             </div>
         </div>
+
+        {showPlanSelector && (
+            <PlanSelectorModal isOpen={showPlanSelector} onClose={() => setShowPlanSelector(false)} />
+        )}
+    </>
     );
 };
 

@@ -44,6 +44,11 @@ public class CurriculumGeneratorController {
         return service.findByUserEmail(token);
     }
 
+    @GetMapping("/{planId}")
+    public LearningPlan getPlan(@PathVariable long planId){
+        return service.getPlanById(planId);
+    }
+
     @PutMapping("/{planId}/github")
     public LearningPlan addGithubUrl(
             @PathVariable long planId,

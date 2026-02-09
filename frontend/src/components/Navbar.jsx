@@ -38,7 +38,7 @@ const Navbar = () => {
                         <Code className="w-5 h-5" />
                     </div>
                     <span className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">
-                        CodeMentor AI <span className="text-secondary">&lt;/&gt;</span>
+                        Buildspace AI <span className="text-secondary">&lt;/&gt;</span>
                     </span>
                 </Link>
 

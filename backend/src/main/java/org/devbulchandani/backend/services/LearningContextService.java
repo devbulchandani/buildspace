@@ -20,10 +20,11 @@ public class LearningContextService {
 
         for (Milestone m : plan.getMilestones()) {
             sb.append(String.format(
-                    "M%d [%s]: %s\n",
+                    "M%d [%s]: %s -> %s\n",
                     m.getSequenceNumber(),
                     m.isCompleted() ? "DONE" : "PENDING",
-                    m.getTitle()
+                    m.getTitle(),
+                    m.getDescription()
             ));
         }
 

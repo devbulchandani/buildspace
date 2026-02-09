@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Book, Clock, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { planApi } from '../api/planApi';
 import { getErrorMessage } from '../api/errorHandler';
@@ -56,7 +56,7 @@ const PlanSelectorModal = ({ isOpen, onClose }) => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const { currentPlan, setCurrentPlan, setMilestones } = useAppStore();
+    const { currentPlan, setCurrentPlan, setMilestones, setRepoUrl } = useAppStore();
 
     useEffect(() => {
         if (isOpen) {
@@ -95,6 +95,7 @@ const PlanSelectorModal = ({ isOpen, onClose }) => {
                 skillLevel: selectedPlan.skillLevel
             });
             setMilestones(selectedPlan.milestones || []);
+            setRepoUrl(selectedPlan.githubUrl || '');
             onClose();
         }
     };

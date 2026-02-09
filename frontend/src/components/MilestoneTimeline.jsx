@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
 import { Circle, Disc, Lock, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../store/useAppStore';
 
-const MilestoneItem = ({ id, title, status, isLast }) => {
+const MilestoneItem = ({ id, sequenceNumber, title, status, isLast, isNextCompleted }) => {
     const navigate = useNavigate();
 
     // Status styles
@@ -15,25 +14,32 @@ const MilestoneItem = ({ id, title, status, isLast }) => {
 
     const Icon = styles.icon;
 
+    // Determine connector line color based on current milestone status
+    const getConnectorColor = () => {
+        if (status === 'COMPLETED') {
+            return 'bg-emerald-400';
+        } else if (status === 'IN_PROGRESS') {
+            return 'bg-gradient-to-b from-yellow-400 to-slate-200';
+        }
+        return 'bg-slate-200';
+    };
+
     return (
         <div className="relative group pl-8 pb-8 last:pb-0">
-            {/* Connector Line */}
             {!isLast && (
-                <div className="absolute left-[11px] top-8 bottom-0 w-0.5 bg-slate-200 group-hover:bg-sky-200 transition-colors" />
+                <div className={`absolute left-[11px] top-8 bottom-0 w-0.5 transition-all ${getConnectorColor()}`} />
             )}
 
-            {/* Node */}
-            <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center bg-white border-2 z-10 ${status === 'COMPLETED' ? 'border-mint-500' : status === 'IN_PROGRESS' ? 'border-yellow-400' : 'border-slate-300'}`}>
+            <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center bg-white border-2 z-10 transition-all ${status === 'COMPLETED' ? 'border-mint-500 shadow-md shadow-mint-200' : status === 'IN_PROGRESS' ? 'border-yellow-400 shadow-md shadow-yellow-200' : 'border-slate-300'}`}>
                 <Icon className={`w-3.5 h-3.5 ${styles.color}`} />
             </div>
 
-            {/* Card */}
             <div
                 onClick={() => navigate(`/milestone/${id}`)}
                 className={`flex items-center justify-between p-4 rounded-lg border ${styles.border} ${styles.bg} hover:shadow-md transition-all cursor-pointer transform hover:-translate-y-0.5`}
             >
                 <span className={`font-semibold ${status === 'LOCKED' ? 'text-slate-500' : 'text-slate-800'}`}>
-                    Milestone {id}: {title}
+                    Milestone {sequenceNumber}: {title}
                 </span>
                 <div className="text-xs font-medium px-2 py-1 rounded bg-white/50 border border-black/5 text-slate-500">
                     {status.replace('_', ' ')}
@@ -60,12 +66,22 @@ const MilestoneTimeline = () => {
         );
     }
 
-    // Map milestone data to display format
-    const displayMilestones = milestones.map((m, index) => ({
-        id: m.id,
-        title: m.title,
-        status: m.completed ? 'COMPLETED' : (index === 0 ? 'IN_PROGRESS' : 'LOCKED')
-    }));
+    const firstIncompleteIndex = milestones.findIndex(m => !m.completed);
+    
+    const displayMilestones = milestones.map((m, index) => {
+        if (m.completed) {
+            return { id: m.id, sequenceNumber: m.sequenceNumber, title: m.title, status: 'COMPLETED' };
+        }
+        
+        const previousMilestone = index > 0 ? milestones[index - 1] : null;
+        const isPreviousCompleted = !previousMilestone || previousMilestone.completed;
+        
+        if (index === firstIncompleteIndex && isPreviousCompleted) {
+            return { id: m.id, sequenceNumber: m.sequenceNumber, title: m.title, status: 'IN_PROGRESS' };
+        }
+        
+        return { id: m.id, sequenceNumber: m.sequenceNumber, title: m.title, status: 'LOCKED' };
+    });
 
     return (
         <div className="mb-8">

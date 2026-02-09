@@ -24,15 +24,12 @@ const Dashboard = () => {
                         <Settings className="w-4 h-4" />
                         Repository Settings
                     </button>
-                    <span className="bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide">
-                        LEVEL 1
-                    </span>
                 </div>
             </div>
 
             <ProjectCard />
             <MilestoneTimeline />
-            <QuickActions />
+            {/* <QuickActions /> */}
 
             <RepoSettingsModal 
                 isOpen={isSettingsOpen} 

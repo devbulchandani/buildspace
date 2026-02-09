@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../store/useAppStore';
-import { Code, Terminal, Braces } from 'lucide-react';
+import { Code, Terminal, Braces, Zap } from 'lucide-react';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -38,6 +38,25 @@ const Login = () => {
         }
     };
 
+    const handleDemoLogin = async () => {
+        setError('');
+        setLoading(true);
+
+        try {
+            const result = await login('devbulchandani876@gmail.com', '12345678');
+            
+            if (result.success) {
+                navigate('/dashboard');
+            } else {
+                setError(result.error || 'Demo login failed');
+            }
+        } catch (err) {
+            setError('Demo login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const toggleMode = () => {
         setIsSignUp(!isSignUp);
         setError('');
@@ -62,7 +81,7 @@ const Login = () => {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-sky-100 rounded-full mb-4 text-sky-600 shadow-inner">
                         <Code size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-800 mb-2">CodeMentor AI</h1>
+                    <h1 className="text-3xl font-bold text-slate-800 mb-2">Buildspace AI</h1>
                     <p className="text-slate-500 font-medium italic">“Learn by building, not by watching.”</p>
                 </div>
 
@@ -119,6 +138,19 @@ const Login = () => {
                         >
                             {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Login')}
                         </button>
+                        
+                        {!isSignUp && (
+                            <button
+                                type="button"
+                                onClick={handleDemoLogin}
+                                disabled={loading}
+                                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                <Zap className="w-4 h-4" />
+                                Try Demo Account
+                            </button>
+                        )}
+                        
                         <button
                             type="button"
                             onClick={toggleMode}
@@ -130,7 +162,7 @@ const Login = () => {
                 </form>
 
                 <div className="mt-6 text-center text-xs text-slate-400">
-                    &copy; 2026 CodeMentor AI. Built for Developers.
+                    &copy; 2026 Buildspace AI. Built for Developers.
                 </div>
             </div>
         </div>
