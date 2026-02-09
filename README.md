@@ -87,7 +87,7 @@ Spring Boot Backend
         |
 Gemini 3 (Plan Generation)
         |
-Database (Postgres / MongoDB)
+Database (CloudSQL(MySql))
         |
 GitHub Repo
         |
@@ -128,7 +128,7 @@ buildpace_mcp     ---> Context for LLM / Code Editor
 
 ### Storage
 
-* PostgreSQL **or** MongoDB
+* CloudSQL(MySQL)
 
 ### Integrations
 
